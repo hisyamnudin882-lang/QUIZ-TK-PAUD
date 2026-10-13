@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kuis Ceria Bahasa Indonesia TK / PAUD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        sans: ['Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(2deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+        .floating { animation: float 3.5s ease-in-out infinite; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-amber-100 via-pink-100 to-sky-200 min-h-screen text-gray-800 font-sans antialiased flex flex-col justify-between selection:bg-pink-400 selection:text-white">
+
+    <!-- HEADER -->
+    <header class="bg-white/90 backdrop-blur-md shadow-md sticky top-0 z-40 px-3 sm:px-6 py-3">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2.5 sm:space-x-3 cursor-pointer group" onclick="appState.goHome()">
+                <div class="bg-gradient-to-r from-pink-500 to-yellow-400 text-white w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shadow-lg text-xl sm:text-2xl font-black group-hover:scale-105 transition transform">
+                    <i class="fa-solid fa-child-reaching"></i>
+                </div>
+                <div>
+                    <h1 class="font-fredoka font-bold text-lg sm:text-2xl text-pink-600 leading-tight">Dunia Ceria TK</h1>
+                    <p class="text-[11px] sm:text-xs text-amber-600 font-semibold">Bahasa Indonesia PAUD & TK</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <button id="audioToggleBtn" onclick="appState.toggleAudio()" class="flex items-center space-x-1.5 bg-pink-50 hover:bg-pink-100 text-pink-600 px-3 py-2 rounded-full text-xs sm:text-sm font-bold border-2 border-pink-200 active:scale-95 shadow-sm transition">
+                    <i id="audioIcon" class="fa-solid fa-volume-high text-pink-500"></i>
+                    <span id="audioText" class="hidden xs:inline sm:inline">Suara: ON</span>
+                </button>
+
+                <button onclick="appState.openTeacherModal()" class="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white px-3.5 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold shadow-md transition flex items-center space-x-1.5 active:scale-95">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                    <span class="hidden xs:inline sm:inline">Dasbor Guru</span>
+                    <span class="inline xs:hidden sm:hidden">Guru</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-3xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-8 flex-grow flex items-center justify-center">
+
+        <!-- VIEW 1: FORM IDENTITAS & SELAMAT DATANG -->
+        <div id="viewWelcome" class="w-full bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-5 sm:p-10 border-4 border-pink-200 transition-all">
+            <div class="text-center max-w-lg mx-auto mb-6 sm:mb-8">
+                <div class="inline-block bg-yellow-100 text-yellow-800 text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full mb-3 shadow-sm border border-yellow-200 floating">
+                    <i class="fa-solid fa-face-smile text-amber-500 mr-1"></i> Bermain & Belajar Bersama
+                </div>
+                <h2 class="font-fredoka text-2xl sm:text-4xl font-extrabold text-pink-600 mb-2 leading-tight">Game Edukasi Bahasa Indonesia</h2>
+                <p class="text-gray-600 text-xs sm:text-base leading-relaxed">Mengenal huruf, bunyi vokal, suku kata, hewan, warna, dan benda sekitar secara interaktif untuk adik-adik PAUD & TK!</p>
+            </div>
+
+            <form id="identityForm" onsubmit="appState.startQuiz(event)" class="max-w-md mx-auto space-y-4 sm:space-y-5 bg-pink-50/70 p-4 sm:p-6 rounded-3xl border-2 border-pink-100 shadow-inner">
+                <div>
+                    <label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">Nama Lengkap Adik</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-pink-400">
+                            <i class="fa-solid fa-user-ninja"></i>
+                        </span>
+                        <input type="text" id="studentName" required placeholder="Contoh: Anisa Putri" class="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-white border-2 border-pink-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-400 font-medium text-sm sm:text-base text-gray-800 shadow-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">Pilih Kelompok Belajar</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-pink-400">
+                            <i class="fa-solid fa-shapes"></i>
+                        </span>
+                        <select id="studentGrade" required class="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-white border-2 border-pink-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-pink-400 font-medium text-sm sm:text-base text-gray-800 shadow-sm">
+                            <option value="" disabled selected>-- Pilih Tingkat --</option>
+                            <option value="PAUD">PAUD / KB (Mengenal Huruf Vokal & Benda)</option>
+                            <option value="TK-A">TK A (Mengenal Huruf Depan & Suara Hewan)</option>
+                            <option value="TK-B">TK B (Membaca Suku Kata Sederhana & Warna)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-500 hover:to-green-600 text-white font-fredoka font-bold py-3.5 sm:py-4 px-6 rounded-2xl shadow-lg transition transform active:scale-95 flex items-center justify-center space-x-2 text-base sm:text-xl">
+                    <span>Mulai Main Sekarang!</span>
+                    <i class="fa-solid fa-play"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- VIEW 2: TAMPILAN KUIS -->
+        <div id="viewQuiz" class="w-full bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-4 sm:p-8 border-4 border-pink-200 hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 border-b pb-3 sm:pb-4 gap-3">
+                <div>
+                    <span id="quizGradeBadge" class="bg-pink-100 text-pink-700 font-bold text-xs px-3.5 py-1 rounded-full">Kelompok X</span>
+                    <h3 id="quizStudentNameDisplay" class="font-bold text-gray-800 text-base sm:text-lg mt-1">Nama Siswa</h3>
+                </div>
+                <div class="w-full sm:w-auto flex items-center justify-between sm:justify-end space-x-2">
+                    <button onclick="appState.readQuestionAudio()" class="bg-amber-100 hover:bg-amber-200 text-amber-900 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center space-x-1 shadow-sm active:scale-95">
+                        <i class="fa-solid fa-volume-high text-amber-600"></i>
+                        <span>Dengar Soal</span>
+                    </button>
+                    <div class="bg-pink-50 text-pink-600 px-3.5 py-1.5 rounded-xl font-bold text-xs sm:text-sm shadow-sm">
+                        Soal <span id="currentQuestionNum">1</span>/<span id="totalQuestionsNum">5</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full bg-gray-200 h-3 rounded-full mb-5 sm:mb-6 overflow-hidden shadow-inner">
+                <div id="quizProgressBar" class="bg-gradient-to-r from-pink-500 to-yellow-400 h-3 rounded-full transition-all duration-300" style="width: 20%"></div>
+            </div>
+
+            <div class="mb-5 sm:mb-6 text-center sm:text-left">
+                <h4 id="questionText" class="font-fredoka text-lg sm:text-2xl font-bold text-indigo-900 leading-relaxed">
+                    Pertanyaan akan muncul di sini...
+                </h4>
+            </div>
+
+            <div id="optionsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6"></div>
+
+            <div id="feedbackBox" class="hidden rounded-2xl p-4 mb-5 border-2 transition-all">
+                <div class="flex items-start space-x-3">
+                    <div id="feedbackIcon" class="text-2xl pt-0.5"></div>
+                    <div>
+                        <h5 id="feedbackTitle" class="font-bold text-sm sm:text-base mb-1"></h5>
+                        <p id="feedbackExplanation" class="text-xs sm:text-sm leading-relaxed"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <button id="nextQuestionBtn" onclick="appState.nextQuestion()" class="hidden w-full sm:w-auto bg-pink-500 hover:bg-pink-600 text-white font-fredoka font-bold px-6 py-3 rounded-2xl shadow-md transition flex items-center justify-center space-x-2 active:scale-95 text-base sm:text-lg">
+                    <span id="nextBtnText">Soal Berikutnya</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW 3: SKOR AKHIR -->
+        <div id="viewResult" class="w-full bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-6 sm:p-10 border-4 border-pink-200 text-center hidden">
+            <div class="w-20 h-20 sm:w-24 sm:h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-500 text-4xl sm:text-5xl shadow-inner floating">
+                <i class="fa-solid fa-star text-yellow-400"></i>
+            </div>
+            <h2 class="font-fredoka text-2xl sm:text-3xl font-bold text-pink-600 mb-2">Hore, Permainan Selesai!</h2>
+            <p id="resultSubtitle" class="text-gray-600 text-xs sm:text-sm mb-6">Hebat sekali, kamu sudah belajar dengan sangat baik!</p>
+
+            <div class="bg-pink-50 max-w-xs mx-auto p-5 rounded-3xl mb-6 border-2 border-pink-100 shadow-sm">
+                <p class="text-xs sm:text-sm text-pink-600 font-bold mb-1">Bintang & Nilai Kamu</p>
+                <div id="finalScoreDisplay" class="font-fredoka text-5xl sm:text-6xl font-black text-pink-600">100</div>
+                <p id="finalScoreMsg" class="text-xs text-gray-500 mt-2">Jawaban Benar: 5 dari 5</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4">
+                <button onclick="appState.restartQuiz()" class="w-full sm:w-auto bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-2xl shadow-md transition flex items-center justify-center space-x-2 active:scale-95 text-sm sm:text-base">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Main Lagi</span>
+                </button>
+                <button onclick="appState.openTeacherModal()" class="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-2xl shadow-md transition flex items-center justify-center space-x-2 active:scale-95 text-sm sm:text-base">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                    <span>Rekap Nilai Guru</span>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL DASBOR GURU -->
+    <div id="teacherModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden border-4 border-purple-200">
+            <div class="bg-purple-900 text-white px-4 sm:px-6 py-3.5 sm:py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-purple-700 p-2 rounded-xl">
+                        <i class="fa-solid fa-chart-line text-yellow-300 text-lg sm:text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm sm:text-lg">Dasbor Rekap Nilai Guru (PAUD/TK)</h3>
+                        <p class="text-[11px] sm:text-xs text-purple-200">Real-Time Sync via Google Sheets Cloud</p>
+                    </div>
+                </div>
+                <button onclick="appState.closeTeacherModal()" class="text-gray-300 hover:text-white text-lg font-bold w-8 h-8 rounded-full hover:bg-purple-800 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-3 sm:p-4 bg-gray-50 border-b flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+                <div class="flex items-center space-x-2">
+                    <label class="text-xs sm:text-sm font-semibold text-gray-600 whitespace-nowrap">Filter Tingkat:</label>
+                    <select id="filterGrade" onchange="appState.renderDashboardTable()" class="w-full sm:w-auto bg-white border border-gray-300 rounded-xl px-3 py-1.5 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm">
+                        <option value="all">Semua Kelas</option>
+                        <option value="PAUD">PAUD / KB</option>
+                        <option value="TK-A">TK A</option>
+                        <option value="TK-B">TK B</option>
+                    </select>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="appState.fetchCloudData()" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition flex items-center justify-center space-x-1.5 active:scale-95">
+                        <i class="fa-solid fa-rotate text-xs"></i>
+                        <span>Refresh</span>
+                    </button>
+                    <button onclick="appState.exportExcel()" class="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition flex items-center justify-center space-x-1.5 active:scale-95">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <span>Excel</span>
+                    </button>
+                    <button onclick="appState.exportWord()" class="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition flex items-center justify-center space-x-1.5 active:scale-95">
+                        <i class="fa-solid fa-file-word"></i>
+                        <span>Word</span>
+                    </button>
+                    <button onclick="appState.exportPDF()" class="flex-1 sm:flex-none bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition flex items-center justify-center space-x-1.5 active:scale-95">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        <span>Cetak / PDF</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 sm:p-6 overflow-y-auto flex-grow">
+                <div class="overflow-x-auto rounded-2xl border border-gray-200 shadow-sm">
+                    <table class="w-full text-left border-collapse min-w-[500px]">
+                        <thead>
+                            <tr class="bg-purple-50 text-purple-900 text-[11px] sm:text-xs font-bold uppercase tracking-wider">
+                                <th class="p-3 sm:p-3.5">Waktu</th>
+                                <th class="p-3 sm:p-3.5">Nama Murid</th>
+                                <th class="p-3 sm:p-3.5">Tingkat</th>
+                                <th class="p-3 sm:p-3.5">Skor</th>
+                                <th class="p-3 sm:p-3.5">Benar / Total</th>
+                                <th class="p-3 sm:p-3.5">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentResultsTableBody" class="divide-y divide-gray-200 text-xs sm:text-sm bg-white">
+                            <tr>
+                                <td colspan="6" class="p-6 text-center text-gray-500"><i class="fa-solid fa-spinner fa-spin text-purple-600 mr-2"></i> Mengambil data dari Google Sheets...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 px-4 sm:px-6 py-3 border-t flex flex-col sm:flex-row justify-between items-center text-[11px] sm:text-xs text-gray-500 gap-1">
+                <span id="totalStudentsCount">Total Siswa Terdata: 0</span>
+                <span class="text-purple-600 font-semibold flex items-center"><i class="fa-solid fa-cloud-arrow-down mr-1"></i> Cloud Real-Time Connected</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ALERT -->
+    <div id="customModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 text-center border-4 border-pink-200">
+            <div id="modalIcon" class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner"></div>
+            <h4 id="modalTitle" class="text-lg font-bold text-gray-800 mb-2">Pemberitahuan</h4>
+            <p id="modalMessage" class="text-xs sm:text-sm text-gray-600 mb-6 leading-relaxed"></p>
+            <button onclick="appState.closeModal()" class="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-2.5 rounded-xl transition shadow-md active:scale-95 text-sm">Mengerti</button>
+        </div>
+    </div>
+
+    <footer class="bg-white/80 border-t py-3 text-center text-[11px] sm:text-xs text-gray-500 mt-6 px-4">
+        <p>Game Edukasi Bahasa Indonesia PAUD & TK &copy; 2026 | Berdasarkan Kurikulum Pendidikan Anak Usia Dini</p>
+    </footer>
+
+    <script>
+        const playSound = (type) => {
+            if (!appState.audioEnabled) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (type === 'correct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+                    osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
+                    osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.5);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, ctx.currentTime);
+                    osc.frequency.setValueAtTime(150, ctx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.4);
+                } else if (type === 'click') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(400, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.08);
+                }
+            } catch (e) { console.log("Audio disabled"); }
+        };
+
+        const speakText = (text) => {
+            if (!appState.audioEnabled || !('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'id-ID';
+            utterance.rate = 0.85;
+            window.speechSynthesis.speak(utterance);
+        };
+
+        // BANK SOAL KURIKULUM PAUD/TK
+        const questionBank = {
+            "PAUD": [
+                { q: "Manakah huruf vokal 'A'?", options: ["A", "B", "M", "S"], answer: 0, explanation: "Hebat! Huruf 'A' diawali seperti kata Apel 🍎!" },
+                { q: "Gambar buah Apel diawali dengan huruf vokal...", options: ["I", "A", "U", "O"], answer: 1, explanation: "Pintar! 'A-p-e-l' diawali dengan huruf 'A'." },
+                { q: "Bunyi suara hewan Kucing adalah...", options: ["Moo..", "Kukuruyuk!", "Meong.. meong..", "Guk guk!"], answer: 2, explanation: "Benar sekali! Kucing berbunyi 'Meong'." },
+                { q: "Manakah benda yang ada di dalam kamar mandi?", options: ["Sabun", "Sendok", "Pensil", "Kasur"], answer: 0, explanation: "Bagus! Sabun digunakan untuk mandi agar badan bersih." },
+                { q: "Benda langit yang bersinar terang di siang hari adalah...", options: ["Bulan", "Matahari", "Bintang", "Awan"], answer: 1, explanation: "Pintar! Matahari menyinari bumi di siang hari." }
+            ],
+            "TK-A": [
+                { q: "Huruf pertama dari kata 'B-U-K-U' adalah...", options: ["K", "U", "B", "A"], answer: 2, explanation: "Luar biasa! Kata 'Buku' diawali dengan huruf 'B'." },
+                { q: "Hewan apa yang suka makan rumput dan menghasilkan susu?", options: ["Sapi", "Ayam", "Ikan", "Burung"], answer: 0, explanation: "Benar! Sapi menghasilkan susu yang sehat." },
+                { q: "Warna dari daun pohon pada umumnya adalah...", options: ["Merah", "Hijau", "Biru", "Kuning"], answer: 1, explanation: "Pintar! Daun berwarna hijau karena memiliki klorofil." },
+                { q: "Benda yang kita pakai di kaki sebelum memakai sepatu adalah...", options: ["Topi", "Kaos Kaki", "Sarung Tangan", "Baju"], answer: 1, explanation: "Hebat! Kaos kaki melindungi kaki kita." },
+                { q: "Huruf 'I' ada pada kata...", options: ["I-k-a-n", "A-y-a-m", "U-d-a-n-g", "O-r-a-n-g"], answer: 0, explanation: "Benar! Kata 'Ikan' diawali huruf 'I'." }
+            ],
+            "TK-B": [
+                { q: "Gabungan suku kata 'BO' dan 'LA' dibaca...", options: ["BOLA", "BALA", "BILA", "BULA"], answer: 0, explanation: "Hebat! B-O (BO) + L-A (LA) dibaca BOLA ⚽!" },
+                { q: "Lawan kata dari 'BESAR' adalah...", options: ["Panjang", "Kecil", "Tinggi", "Banyak"], answer: 1, explanation: "Pintar! Lawan kata besar adalah kecil." },
+                { q: "Anak yang suka membantu teman adalah anak yang...", options: ["Nakal", "Baik hati", "Suka marah", "Pelit"], answer: 1, explanation: "Luar biasa! Membantu teman adalah perbuatan baik." },
+                { q: "Suku kata awal dari kata 'KU-DA' adalah...", options: ["KI", "KU", "KA", "KO"], answer: 1, explanation: "Benar! 'KU-DA' diawali suku kata 'KU'." },
+                { q: "Warna buah Pisang yang sudah matang adalah...", options: ["Kuning", "Biru", "Hitam", "Ungu"], answer: 0, explanation: "Pintar! Pisang matang berwarna kuning manis." }
+            ]
+        };
+
+        class QuizApp {
+            constructor() {
+                this.audioEnabled = true;
+                this.currentGrade = "PAUD";
+                this.studentName = "";
+                this.questions = [];
+                this.currentIndex = 0;
+                this.score = 0;
+                this.correctCount = 0;
+                this.cloudResults = [];
+                // LINK GOOGLE APPS SCRIPT WEB APP TERBARU
+                this.sheetsURL = "https://script.google.com/macros/s/AKfycbxZShV1NE7DiIYzJbEJbBFOWZUOlS82uiMjafUgRLx1_dyVUx2vJxnppsl3XTaru2DiLg/exec";
+            }
+
+            toggleAudio() {
+                this.audioEnabled = !this.audioEnabled;
+                const icon = document.getElementById('audioIcon');
+                const text = document.getElementById('audioText');
+                if (this.audioEnabled) {
+                    icon.className = "fa-solid fa-volume-high text-pink-500";
+                    text.innerText = "Suara: ON";
+                    playSound('click');
+                } else {
+                    icon.className = "fa-solid fa-volume-xmark text-gray-400";
+                    text.innerText = "Suara: OFF";
+                    window.speechSynthesis.cancel();
+                }
+            }
+
+            showAlert(title, message, type = 'success') {
+                const modal = document.getElementById('customModal');
+                document.getElementById('modalTitle').innerText = title;
+                document.getElementById('modalMessage').innerText = message;
+                const iconEl = document.getElementById('modalIcon');
+
+                if (type === 'success') {
+                    iconEl.className = "w-14 h-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner";
+                    iconEl.innerHTML = '<i class="fa-solid fa-check"></i>';
+                } else {
+                    iconEl.className = "w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner";
+                    iconEl.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                }
+                modal.classList.remove('hidden');
+                playSound('click');
+            }
+
+            closeModal() {
+                document.getElementById('customModal').classList.add('hidden');
+                playSound('click');
+            }
+
+            goHome() {
+                window.speechSynthesis.cancel();
+                document.getElementById('viewWelcome').classList.remove('hidden');
+                document.getElementById('viewQuiz').classList.add('hidden');
+                document.getElementById('viewResult').classList.add('hidden');
+                playSound('click');
+            }
+
+            startQuiz(e) {
+                e.preventDefault();
+                playSound('click');
+                const nameInput = document.getElementById('studentName').value.trim();
+                const gradeSelect = document.getElementById('studentGrade').value;
+
+                if (!nameInput || !gradeSelect) {
+                    this.showAlert("Ayo Diisi!", "Tuliskan nama dan pilih kelompok belajar dulu ya!", "error");
+                    return;
+                }
+
+                this.studentName = nameInput;
+                this.currentGrade = gradeSelect;
+                this.questions = [...questionBank[this.currentGrade]];
+                this.currentIndex = 0;
+                this.score = 0;
+                this.correctCount = 0;
+
+                document.getElementById('quizStudentNameDisplay').innerText = this.studentName;
+                document.getElementById('quizGradeBadge').innerText = `Tingkat ${this.currentGrade}`;
+                document.getElementById('totalQuestionsNum').innerText = this.questions.length;
+
+                document.getElementById('viewWelcome').classList.add('hidden');
+                document.getElementById('viewQuiz').classList.remove('hidden');
+                document.getElementById('viewResult').classList.add('hidden');
+
+                this.loadQuestion();
+            }
+
+            loadQuestion() {
+                const q = this.questions[this.currentIndex];
+                document.getElementById('currentQuestionNum').innerText = this.currentIndex + 1;
+                const progressPercent = ((this.currentIndex + 1) / this.questions.length) * 100;
+                document.getElementById('quizProgressBar').style.width = `${progressPercent}%`;
+
+                document.getElementById('questionText').innerText = q.q;
+                speakText(q.q);
+
+                const container = document.getElementById('optionsContainer');
+                container.innerHTML = "";
+
+                q.options.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = "w-full text-left p-4 rounded-2xl border-2 border-pink-100 bg-white hover:bg-pink-50 hover:border-pink-300 font-fredoka font-semibold text-base sm:text-lg text-gray-700 transition flex items-center justify-between shadow-sm active:scale-95";
+                    btn.innerHTML = `<span><strong class="text-pink-500 mr-2">${String.fromCharCode(65 + idx)}.</strong> ${opt}</span> <i class="fa-solid fa-star text-amber-200"></i>`;
+                    btn.onclick = () => this.selectAnswer(idx);
+                    container.appendChild(btn);
+                });
+
+                document.getElementById('feedbackBox').classList.add('hidden');
+                document.getElementById('nextQuestionBtn').classList.add('hidden');
+            }
+
+            readQuestionAudio() {
+                const q = this.questions[this.currentIndex];
+                speakText(q.q);
+            }
+
+            selectAnswer(selectedIndex) {
+                const q = this.questions[this.currentIndex];
+                const optionsButtons = document.getElementById('optionsContainer').children;
+
+                for (let btn of optionsButtons) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-80', 'cursor-not-allowed');
+                }
+
+                const feedbackBox = document.getElementById('feedbackBox');
+                const feedbackIcon = document.getElementById('feedbackIcon');
+                const feedbackTitle = document.getElementById('feedbackTitle');
+                const feedbackExplanation = document.getElementById('feedbackExplanation');
+                feedbackBox.classList.remove('hidden');
+
+                if (selectedIndex === q.answer) {
+                    playSound('correct');
+                    this.correctCount++;
+                    optionsButtons[selectedIndex].className = "w-full text-left p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50 font-fredoka font-bold text-base sm:text-lg text-emerald-900 flex items-center justify-between shadow-sm";
+                    
+                    feedbackBox.className = "rounded-2xl p-4 mb-5 border-2 bg-emerald-50 border-emerald-300 text-emerald-900 transition-all";
+                    feedbackIcon.innerHTML = '<i class="fa-solid fa-face-laugh-beam text-emerald-600"></i>';
+                    feedbackTitle.innerText = "Hebat Sekali! Jawaban Kamu Benar! 🎉";
+                    feedbackExplanation.innerText = q.explanation;
+                    speakText("Benar sekali! " + q.explanation);
+                } else {
+                    playSound('wrong');
+                    optionsButtons[selectedIndex].className = "w-full text-left p-4 rounded-2xl border-2 border-rose-500 bg-rose-50 font-fredoka font-bold text-base sm:text-lg text-rose-900 flex items-center justify-between shadow-sm";
+                    optionsButtons[q.answer].className = "w-full text-left p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50 font-fredoka font-bold text-base sm:text-lg text-emerald-900 flex items-center justify-between shadow-sm";
+
+                    feedbackBox.className = "rounded-2xl p-4 mb-5 border-2 bg-rose-50 border-rose-300 text-rose-900 transition-all";
+                    feedbackIcon.innerHTML = '<i class="fa-solid fa-face-smile-wink text-rose-600"></i>';
+                    feedbackTitle.innerText = "Hampir Tepat! Yuk Pelajari Lagi 💡";
+                    feedbackExplanation.innerText = `Jawaban yang benar adalah: ${q.options[q.answer]}. \n\nPenjelasan: ${q.explanation}`;
+                    speakText("Hampir tepat. Penjelasannya: " + q.explanation);
+                }
+
+                const nextBtn = document.getElementById('nextQuestionBtn');
+                nextBtn.classList.remove('hidden');
+                if (this.currentIndex === this.questions.length - 1) {
+                    document.getElementById('nextBtnText').innerText = "Lihat Bintang Kamu!";
+                } else {
+                    document.getElementById('nextBtnText').innerText = "Soal Berikutnya";
+                }
+            }
+
+            nextQuestion() {
+                playSound('click');
+                this.currentIndex++;
+                if (this.currentIndex < this.questions.length) {
+                    this.loadQuestion();
+                } else {
+                    this.showResult();
+                }
+            }
+
+            showResult() {
+                document.getElementById('viewQuiz').classList.add('hidden');
+                document.getElementById('viewResult').classList.remove('hidden');
+
+                const total = this.questions.length;
+                this.score = Math.round((this.correctCount / total) * 100);
+
+                document.getElementById('finalScoreDisplay').innerText = this.score;
+                document.getElementById('finalScoreMsg').innerText = `Jawaban Benar: ${this.correctCount} dari ${total}`;
+
+                if (this.score === 100) {
+                    document.getElementById('resultSubtitle').innerText = "Luar biasa sempurna! Kamu pintar sekali!";
+                    speakText("Hore! Nilai kamu seratus. Kamu pintar sekali!");
+                } else {
+                    document.getElementById('resultSubtitle').innerText = "Kerja bagus! Terus semangat belajar ya!";
+                    speakText("Kerja bagus! Terus semangat belajar ya!");
+                }
+
+                this.saveResultToCloud({
+                    nama: this.studentName,
+                    kelas: this.currentGrade,
+                    nilai: this.score,
+                    benar: this.correctCount,
+                    salah: total - this.correctCount
+                });
+            }
+
+            saveResultToCloud(payload) {
+                fetch(this.sheetsURL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).then(() => {
+                    console.log("Data terkirim ke Google Sheets!");
+                    setTimeout(() => this.fetchCloudData(), 1500);
+                }).catch(err => console.error("Error cloud send:", err));
+            }
+
+            restartQuiz() {
+                playSound('click');
+                this.goHome();
+            }
+
+            openTeacherModal() {
+                playSound('click');
+                document.getElementById('teacherModal').classList.remove('hidden');
+                this.fetchCloudData();
+            }
+
+            closeTeacherModal() {
+                playSound('click');
+                document.getElementById('teacherModal').classList.add('hidden');
+            }
+
+            fetchCloudData() {
+                const tbody = document.getElementById('studentResultsTableBody');
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-gray-500"><i class="fa-solid fa-spinner fa-spin text-purple-600 mr-2"></i> Mengambil data dari Google Sheets...</td></tr>`;
+
+                fetch(this.sheetsURL)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (Array.isArray(data)) {
+                            this.cloudResults = data.reverse();
+                            this.renderDashboardTable();
+                        } else {
+                            tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-rose-500">Gagal memuat data cloud.</td></tr>`;
+                        }
+                    })
+                    .catch(err => {
+                        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-rose-500">Gagal terhubung ke Google Sheets. Pastikan URL Web App sudah dipasang.</td></tr>`;
+                    });
+            }
+
+            renderDashboardTable() {
+                const filter = document.getElementById('filterGrade').value;
+                const tbody = document.getElementById('studentResultsTableBody');
+
+                let filtered = this.cloudResults;
+                if (filter !== 'all') {
+                    filtered = this.cloudResults.filter(item => item.gradeLevel == filter || item.kelas == filter);
+                }
+
+                document.getElementById('totalStudentsCount').innerText = `Total Siswa Terdata: ${filtered.length}`;
+
+                if (filtered.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-gray-500">Belum ada data nilai tersimpan.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = "";
+                filtered.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-purple-50/50 transition";
+                    const badgeClass = item.skor >= 70 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700';
+                    tr.innerHTML = `
+                        <td class="p-3 sm:p-3.5 text-gray-600 text-xs">${item.waktu}</td>
+                        <td class="p-3 sm:p-3.5 font-bold text-gray-800">${item.nama}</td>
+                        <td class="p-3 sm:p-3.5 text-purple-700 font-semibold">${item.kelas}</td>
+                        <td class="p-3 sm:p-3.5 font-black text-gray-900">${item.skor}</td>
+                        <td class="p-3 sm:p-3.5 text-gray-600">${item.benar} / ${item.total}</td>
+                        <td class="p-3 sm:p-3.5"><span class="px-2.5 py-1 rounded-full text-[11px] font-bold ${badgeClass}">${item.status}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            exportExcel() {
+                playSound('click');
+                if (this.cloudResults.length === 0) return this.showAlert("Kosong", "Belum ada data nilai.", "error");
+
+                let csv = "Waktu,Nama Murid,Tingkat,Skor,Benar,Total,Status\n";
+                this.cloudResults.forEach(r => {
+                    csv += `"${r.waktu}","${r.nama}","${r.kelas}",${r.skor},${r.benar},${r.total},"${r.status}"\n`;
+                });
+
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Rekap_Nilai_PAUD_TK_${new Date().toISOString().slice(0,10)}.csv`;
+                a.click();
+            }
+
+            exportWord() {
+                playSound('click');
+                if (this.cloudResults.length === 0) return this.showAlert("Kosong", "Belum ada data nilai.", "error");
+
+                let htmlContent = `<html><head><meta charset='utf-8'></head><body style="font-family:Arial;"><h2>Rekap Nilai Kuis PAUD/TK</h2><table border="1" cellspacing="0" cellpadding="8" style="width:100%;"><tr><th>Waktu</th><th>Nama</th><th>Tingkat</th><th>Skor</th><th>Benar/Total</th><th>Status</th></tr>`;
+                this.cloudResults.forEach(r => {
+                    htmlContent += `<tr><td>${r.waktu}</td><td><b>${r.nama}</b></td><td>${r.kelas}</td><td>${r.skor}</td><td>${r.benar}/${r.total}</td><td>${r.status}</td></tr>`;
+                });
+                htmlContent += `</table></body></html>`;
+
+                const blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Rekap_Nilai_PAUD_TK_${new Date().toISOString().slice(0,10)}.doc`;
+                a.click();
+            }
+
+            exportPDF() {
+                playSound('click');
+                window.print();
+            }
+        }
+
+        const appState = new QuizApp();
+    </script>
+</body>
+</html>
