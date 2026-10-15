@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Ceria PAUD & TK - Belajar Sambil Bermain</title>
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fredoka & Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- SheetJS (XLSX) untuk Export Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- html2pdf untuk Export PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #fbcfe8 0%, #bae6fd 50%, #fef08a 100%);
+            background-attachment: fixed; 
+        }
+        .font-fredoka { font-family: 'Fredoka', cursive, sans-serif; }
+        .bounce-slow { animation: bounce 3s infinite; }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(-4%); animation-timing-function: cubic-bezier(0.8,0,1,1); }
+            50% { transform: none; animation-timing-function: cubic-bezier(0,0,0.2,1); }
+        }
+    </style>
+</head>
+<body class="min-h-screen py-4 px-3 sm:py-6 sm:px-4 flex items-center justify-center">
+
+    <!-- Container Compact -->
+    <div id="app-container" class="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl shadow-xl overflow-hidden border-4 border-pink-300">
+        
+        <!-- Header Aplikasi -->
+        <header class="bg-gradient-to-r from-pink-400 via-purple-400 to-sky-400 p-3 text-white shadow-sm">
+            <div class="flex justify-between items-center mb-1">
+                <button onclick="toggleAudio()" id="audio-toggle-btn" class="bg-white/30 hover:bg-white/50 text-white px-2.5 py-1 rounded-full text-[11px] font-bold transition flex items-center gap-1 shadow cursor-pointer" title="Suara ON/OFF">
+                    🔊 <span id="audio-status-text" class="hidden sm:inline">Audio ON</span>
+                </button>
+                <button onclick="openTeacherDashboard()" class="bg-yellow-300 hover:bg-yellow-400 text-purple-900 px-3 py-1 rounded-full text-[11px] font-fredoka font-bold shadow-sm transition transform hover:scale-105 cursor-pointer">
+                    🔐 Dasbor Guru
+                </button>
+            </div>
+            <div class="text-center">
+                <h1 class="font-fredoka text-lg sm:text-xl font-bold drop-shadow-sm">🌟 Kuis Ceria PAUD 🌟</h1>
+                <p class="text-[11px] text-pink-100 font-medium">Belajar Seru, Pintar, & Gembira!</p>
+            </div>
+        </header>
+
+        <!-- Konten Dinamis -->
+        <main id="main-content" class="p-3.5 sm:p-4">
+            <!-- Render via JS -->
+        </main>
+    </div>
+
+    <!-- Modal Dasbor Guru -->
+    <div id="teacher-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-3 z-50 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-4 sm:p-5 shadow-2xl border-4 border-yellow-300 relative my-auto">
+            <button onclick="closeTeacherDashboard()" class="absolute top-3 right-3 bg-red-100 hover:bg-red-200 text-red-600 font-bold w-8 h-8 rounded-full flex items-center justify-center text-base transition cursor-pointer">✕</button>
+            
+            <div class="flex items-center gap-2.5 mb-4">
+                <span class="text-2xl">📊</span>
+                <div>
+                    <h2 class="font-fredoka text-xl font-bold text-purple-800">Dasbor Rekap Nilai Guru</h2>
+                    <p class="text-[11px] text-gray-500">Sinkronisasi Real-Time dari Google Sheets</p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2 mb-3 justify-between items-center">
+                <button onclick="fetchLeaderboardData()" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow transition flex items-center gap-1 cursor-pointer">
+                    🔄 Muat Ulang Data
+                </button>
+                <div class="flex flex-wrap gap-1.5">
+                    <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold shadow transition cursor-pointer">📥 Excel</button>
+                    <button onclick="exportToPDF()" class="bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold shadow transition cursor-pointer">📄 PDF</button>
+                    <button onclick="exportToWord()" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold shadow transition cursor-pointer">📝 Word</button>
+                </div>
+            </div>
+
+            <!-- Tabel Data Murid -->
+            <div id="leaderboard-container" class="overflow-x-auto rounded-xl border border-gray-200 shadow-inner max-h-72 overflow-y-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead class="bg-purple-100 text-purple-800 font-fredoka sticky top-0">
+                        <tr>
+                            <th class="p-2.5 whitespace-nowrap">Waktu</th>
+                            <th class="p-2.5 whitespace-nowrap">Nama Murid</th>
+                            <th class="p-2.5 whitespace-nowrap">Jenjang</th>
+                            <th class="p-2.5 text-center whitespace-nowrap">Skor</th>
+                            <th class="p-2.5 text-center whitespace-nowrap">Benar / Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-tbody" class="divide-y divide-gray-100">
+                        <tr>
+                            <td colspan="5" class="text-center p-5 text-gray-400">Klik "Muat Ulang Data" untuk menarik rekap nilai dari Google Sheets.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Utama Kuis -->
+    <script>
+        const scriptUrl = "https://script.google.com/macros/s/AKfycbwygkMCFogpVG7tWYXhq_XMsk9Hch4xKpwoLdGWMNHQwHKFiburDaCZxm3Bk7p4KJA_Qg/exec";
+        let audioEnabled = true;
+
+        const quizData = [
+            { 
+                id: 1, 
+                category: "🐱 Suara Hewan", 
+                question: "Hewan di atas suka mengeong... Suaranya 'Meong... meong...'. Hewan apakah ini?", 
+                image: "kucing.jpg", 
+                options: [{ label: "A", text: "Anjing" }, { label: "B", text: "Kucing" }, { label: "C", text: "Bebek" }, { label: "D", text: "Sapi" }], 
+                correct: "B", 
+                explanation: "Kucing itu hewan peliharaan yang lucu dan berbulu halus! Kalau lapar atau minta dibelai, kucing suka bilang 'meong... meong...'. Nah, kalau 'guk-guk' itu suara anjing, 'wek-wek' itu suara bebek, dan 'mboo...' itu suara sapi." 
+            },
+            { 
+                id: 2, 
+                category: "🍎 Mengenal Warna", 
+                question: "Apel manis ini warnanya apa ya?", 
+                image: "apel.jpg", 
+                options: [{ label: "A", text: "Merah" }, { label: "B", text: "Biru" }, { label: "C", text: "Kuning" }, { label: "D", text: "Hitam" }], 
+                correct: "A", 
+                explanation: "Apel yang matang rasanya manis dan warnanya merah cerah seperti warna buah stroberi. Siapa di sini yang suka makan buah apel merah?" 
+            },
+            { 
+                id: 3, 
+                category: "🚗 Alat Transportasi", 
+                question: "Benda roda empat ini berjalan di jalan raya. Apa namanya?", 
+                image: "mobil.jpg", 
+                options: [{ label: "A", text: "Pesawat" }, { label: "B", text: "Kapal Laut" }, { label: "C", text: "Mobil" }, { label: "D", text: "Sepeda Motor" }], 
+                correct: "C", 
+                explanation: "Mobil itu punya 4 roda dan berjalan di jalan raya. Kalau kapal jalan di air, pesawat terbang di udara, dan sepeda motor rodanya hanya 2!" 
+            },
+            { 
+                id: 4, 
+                category: "🍌 Makanan Kesukaan Hewan", 
+                question: "Buah pisang yang berwarna kuning ini paling disukai oleh hewan...", 
+                image: "pisang.jpg", 
+                options: [{ label: "A", text: "Monyet 🐒" }, { label: "B", text: "Ikan 🐟" }, { label: "C", text: "Burung 🐦" }, { label: "D", text: "Kucing 🐱" }], 
+                correct: "A", 
+                explanation: "Monyet suka sekali mengupas dan makan pisang kuning yang manis! Monyet suka melompat-lompat di pohon sambil membawa pisang." 
+            },
+            { 
+                id: 5, 
+                category: "☀️ Benda di Langit", 
+                question: "Benda langit yang bersinar terang dan bikin siang hari jadi hangat adalah...", 
+                image: "matahari.jpg", 
+                options: [{ label: "A", text: "Bulan" }, { label: "B", text: "Matahari" }, { label: "C", text: "Bintang" }, { label: "D", text: "Awan" }], 
+                correct: "B", 
+                explanation: "Matahari muncul di pagi dan siang hari! Sinarnya bikin dunia terang benderang dan tubuh kita hangat. Kalau malam hari, baru deh ada bulan dan bintang yang menemani kita." 
+            },
+            { 
+                id: 6, 
+                category: "🐸 Tebak Hewan Melompat", 
+                question: "Hewan hijau ini sukanya melompat dan berbunyi 'Kuning... kung...'. Siapakah dia?", 
+                image: "katak.jpg", 
+                options: [{ label: "A", text: "Katak / Kodok" }, { label: "B", text: "Kupu-kupu" }, { label: "C", text: "Ayam" }, { label: "D", text: "Ikan" }], 
+                correct: "A", 
+                explanation: "Katak/kodok itu warnanya hijau, punya kaki belakang yang kuat buat melompat tinggi, dan suka bernyanyi 'kuning-kung... kuning-kung' kalau lagi hujan!" 
+            },
+            { 
+                id: 7, 
+                category: "🍦 Makanan Dingin", 
+                question: "Makanan ini rasanya manis, dingin, dan mudah meleleh. Apa namanya?", 
+                image: "eskrim.jpg", 
+                options: [{ label: "A", text: "Es Krim" }, { label: "B", text: "Sup Hangat" }, { label: "C", text: "Roti Bakar" }, { label: "D", text: "Nasi Goreng" }], 
+                correct: "A", 
+                explanation: "Es krim disimpan di lemari es supaya dingin. Karena dingin dan manis, kalau kita pegang lama-lama di tempat hangat, es krimnya bisa meleleh dan menetes!" 
+            },
+            { 
+                id: 8, 
+                category: "🐘 vs 🐜 Mengenal Ukuran", 
+                question: "Di antara gajah 🐘 dan semut 🐜, hewan mana yang ukurannya paling besar?", 
+                image: "gajah_semut.jpg", 
+                options: [{ label: "A", text: "Semut" }, { label: "B", text: "Gajah" }, { label: "C", text: "Lalat" }, { label: "D", text: "Nyamuk" }], 
+                correct: "B", 
+                explanation: "Gajah itu tubuhnya sangat besar, punya telinga lebar, dan belalai yang panjang! Sedangkan semut itu kecil sekali sampai harus diintip dekat-dekat baru kelihatan." 
+            },
+            { 
+                id: 9, 
+                category: "⚽ Bentuk Benda", 
+                question: "Bola yang biasa ditendang saat bermain sepak bola berbentuk...", 
+                image: "bola_sepak.jpg", 
+                options: [{ label: "A", text: "Kotak / Persegi" }, { label: "B", text: "Bulat / Lingkaran" }, { label: "C", text: "Segitiga" }, { label: "D", text: "Bintang" }], 
+                correct: "B", 
+                explanation: "Karena bentuknya bulat licin, bola bisa menggelinding cepat saat ditendang! Coba kalau bolanya kotak, pasti susah buat menggelinding, kan?" 
+            },
+            { 
+                id: 10, 
+                category: "🦆 Berhitung Gambar", 
+                question: "Ada berapa jumlah bebek di atas?", 
+                image: "bebek.jpg", 
+                options: [{ label: "A", text: "1" }, { label: "B", text: "2" }, { label: "C", text: "3" }, { label: "D", text: "4" }], 
+                correct: "C", 
+                explanation: "Mari kita hitung bersama-sama: satu... dua... tiga! Hore, ada 3 bebek yang sedang berbaris rapi!" 
+            }
+        ];
+
+        let gameState = {
+            playerName: "",
+            playerClass: "TK/PAUD",
+            currentQuestionIndex: 0,
+            score: 0,
+            correctCount: 0,
+            answersRecord: []
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderWelcomeScreen();
+        });
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const toggleBtn = document.getElementById('audio-toggle-btn');
+            if (audioEnabled) {
+                toggleBtn.innerHTML = `🔊 <span id="audio-status-text" class="hidden sm:inline">Audio ON</span>`;
+                playSound('success');
+            } else {
+                toggleBtn.innerHTML = `🔇 <span id="audio-status-text" class="hidden sm:inline">Audio OFF</span>`;
+                window.speechSynthesis.cancel();
+            }
+        }
+
+        function playSound(type) {
+            if (!audioEnabled) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                    osc.start(); osc.stop(ctx.currentTime + 0.3);
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(200, ctx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(120, ctx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                    osc.start(); osc.stop(ctx.currentTime + 0.3);
+                } else if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+                    osc.start(); osc.stop(ctx.currentTime + 0.1);
+                }
+            } catch(e) { console.log("Audio Error"); }
+        }
+
+        function speakText(text) {
+            if (!audioEnabled || !('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'id-ID';
+            utterance.rate = 0.9;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function renderWelcomeScreen() {
+            const html = `
+                <div class="text-center py-1 px-1">
+                    <div class="inline-block bg-pink-100 p-2.5 rounded-full mb-2.5 shadow-inner bounce-slow">
+                        <span class="text-4xl">🎨</span>
+                    </div>
+                    <h2 class="font-fredoka text-lg sm:text-xl font-bold text-purple-700 mb-1">Selamat Datang di Kuis Ceria!</h2>
+                    <p class="text-[11px] text-gray-600 mb-4 max-w-xs mx-auto">Yuk isi nama kamu dulu sebelum mulai bermain sambil belajar!</p>
+                    
+                    <form onsubmit="startQuiz(event)" class="space-y-3 max-w-xs mx-auto text-left">
+                        <div>
+                            <label class="block font-fredoka text-[11px] text-purple-800 mb-1">Nama Lengkap Anak:</label>
+                            <input type="text" id="player-name" required placeholder="Contoh: Budi Santoso" class="w-full px-3 py-2 rounded-xl border-2 border-pink-300 focus:border-purple-500 focus:outline-none text-xs shadow-sm bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-fredoka text-[11px] text-purple-800 mb-1">Jenjang:</label>
+                            <input type="text" value="TK/PAUD" disabled class="w-full px-3 py-2 rounded-xl border-2 border-pink-200 bg-purple-50 text-purple-900 font-bold text-xs shadow-sm cursor-not-allowed">
+                        </div>
+                        <button type="submit" class="w-full mt-2 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-fredoka text-sm py-2.5 rounded-xl shadow-md transform active:scale-95 transition cursor-pointer">
+                            🚀 Mulai Bermain & Kuis!
+                        </button>
+                    </form>
+                </div>
+            `;
+            document.getElementById('main-content').innerHTML = html;
+            speakText("Selamat datang di kuis ceria. Silakan ketik nama kamu ya!");
+        }
+
+        function startQuiz(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('player-name').value.trim();
+            if (!nameInput) return;
+            gameState.playerName = nameInput;
+            gameState.playerClass = "TK/PAUD";
+            gameState.currentQuestionIndex = 0;
+            gameState.score = 0;
+            gameState.correctCount = 0;
+            gameState.answersRecord = [];
+            playSound('success');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = quizData[gameState.currentQuestionIndex];
+            const total = quizData.length;
+            const progressPct = ((gameState.currentQuestionIndex) / total) * 100;
+            const imageHtml = q.image ? `<img src="${q.image}" alt="Gambar Soal" class="w-full max-h-28 object-contain rounded-xl mb-2 shadow-sm border border-sky-100 mx-auto">` : '';
+
+            const previousAnswer = gameState.answersRecord.find(a => a.questionId === q.id);
+
+            const html = `
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="bg-purple-100 text-purple-700 text-[11px] font-bold px-2 py-0.5 rounded-full font-fredoka">Soal ${gameState.currentQuestionIndex + 1} dari ${total}</span>
+                        <span class="bg-pink-100 text-pink-700 text-[11px] font-bold px-2 py-0.5 rounded-full font-fredoka">${q.category}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 h-1.5 rounded-full mb-2 overflow-hidden">
+                        <div class="bg-gradient-to-r from-pink-400 to-purple-500 h-1.5 rounded-full transition-all duration-300" style="width: ${progressPct}%"></div>
+                    </div>
+                    
+                    <div class="bg-sky-50 border-2 border-sky-200 rounded-xl p-2.5 mb-2.5 shadow-sm text-center">
+                        ${imageHtml}
+                        <h3 class="font-fredoka text-xs sm:text-sm font-bold text-sky-900 mb-1.5">${q.question}</h3>
+                        <button onclick="speakQuestionText()" class="text-[10px] bg-sky-200 hover:bg-sky-300 text-sky-800 font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-1 transition cursor-pointer">
+                            🔊 Bacakan Soal
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2" id="options-grid">
+                        ${q.options.map(opt => `
+                            <button onclick="selectOption('${opt.label}')" id="opt-${opt.label}" class="option-btn text-left p-2 rounded-xl border-2 border-purple-200 hover:border-purple-400 hover:bg-purple-50 transition flex items-center gap-2 bg-white shadow-sm font-medium text-xs text-gray-700 cursor-pointer">
+                                <span class="w-6 h-6 rounded-lg bg-purple-100 text-purple-700 font-fredoka font-bold flex items-center justify-center shrink-0 text-xs">${opt.label}</span>
+                                <span class="flex-grow">${opt.text}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                    
+                    <div id="feedback-box" class="${previousAnswer ? '' : 'hidden'} mt-2 p-2.5 rounded-xl border-2 transition-all">
+                        <div id="feedback-header" class="font-fredoka font-bold text-xs mb-1 flex items-center gap-1"></div>
+                        <p id="feedback-text" class="text-[11px] text-gray-700 mb-2"></p>
+                        <button id="next-btn" onclick="nextQuestion()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-fredoka py-1.5 rounded-xl text-xs shadow-md transition cursor-pointer">
+                            ${gameState.currentQuestionIndex === total - 1 ? 'Selesaikan Kuis 🏁' : 'Lanjut ke Soal Berikutnya ➔'}
+                        </button>
+                    </div>
+
+                    <!-- Tombol Navigasi Kembali ke Soal Sebelumnya -->
+                    <div class="flex justify-between items-center mt-3 pt-2 border-t border-gray-200">
+                        ${gameState.currentQuestionIndex > 0 ? `
+                            <button onclick="prevQuestion()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-fredoka px-3 py-1.5 rounded-xl text-xs transition flex items-center gap-1 cursor-pointer">
+                                ⬅️ Sebelumnya
+                            </button>
+                        ` : `<div></div>`}
+                        <span class="text-[10px] text-gray-400 font-medium">Kuis Ceria PAUD & TK</span>
+                    </div>
+                </div>
+            `;
+            document.getElementById('main-content').innerHTML = html;
+
+            if (previousAnswer) {
+                restorePreviousAnswer(previousAnswer, q);
+            }
+            speakQuestionText();
+        }
+
+        function restorePreviousAnswer(ans, q) {
+            const allOptBtns = document.querySelectorAll('.option-btn');
+            allOptBtns.forEach(btn => btn.disabled = true);
+            const selectedBtn = document.getElementById(`opt-${ans.selected}`);
+            const correctBtn = document.getElementById(`opt-${q.correct}`);
+            const feedbackBox = document.getElementById('feedback-box');
+            const feedbackHeader = document.getElementById('feedback-header');
+            const feedbackText = document.getElementById('feedback-text');
+
+            if (ans.isCorrect) {
+                if (selectedBtn) {
+                    selectedBtn.classList.remove('border-purple-200', 'bg-white');
+                    selectedBtn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
+                }
+                feedbackBox.className = "mt-2 p-2.5 rounded-xl border-2 border-emerald-300 bg-emerald-50 transition-all";
+                feedbackHeader.innerHTML = "🎉 Hebat Sekali, Benar! 🎉";
+                feedbackHeader.className = "font-fredoka font-bold text-xs mb-1 text-emerald-800 flex items-center gap-1";
+                feedbackText.innerHTML = q.explanation;
+            } else {
+                if (selectedBtn) {
+                    selectedBtn.classList.remove('border-purple-200', 'bg-white');
+                    selectedBtn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-900');
+                }
+                if (correctBtn) {
+                    correctBtn.classList.remove('border-purple-200', 'bg-white');
+                    correctBtn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
+                }
+                feedbackBox.className = "mt-2 p-2.5 rounded-xl border-2 border-rose-300 bg-rose-50 transition-all";
+                feedbackHeader.innerHTML = "💡 Kurang Tepat, Yuk Perhatikan Ini! 💡";
+                feedbackHeader.className = "font-fredoka font-bold text-xs mb-1 text-rose-800 flex items-center gap-1";
+                feedbackText.innerHTML = `Jawaban yang benar adalah <b>Opsi ${q.correct}</b>.<br><br>${q.explanation}`;
+            }
+            feedbackBox.classList.remove('hidden');
+        }
+
+        function speakQuestionText() {
+            speakText(quizData[gameState.currentQuestionIndex].question);
+        }
+
+        function selectOption(selectedLabel) {
+            const q = quizData[gameState.currentQuestionIndex];
+            const isCorrect = (selectedLabel === q.correct);
+            const allOptBtns = document.querySelectorAll('.option-btn');
+            allOptBtns.forEach(btn => btn.disabled = true);
+            const selectedBtn = document.getElementById(`opt-${selectedLabel}`);
+            const correctBtn = document.getElementById(`opt-${q.correct}`);
+            const feedbackBox = document.getElementById('feedback-box');
+            const feedbackHeader = document.getElementById('feedback-header');
+            const feedbackText = document.getElementById('feedback-text');
+
+            const existingIndex = gameState.answersRecord.findIndex(a => a.questionId === q.id);
+            if (existingIndex !== -1) {
+                if (gameState.answersRecord[existingIndex].isCorrect && !isCorrect) {
+                    gameState.score -= 10;
+                    gameState.correctCount -= 1;
+                } else if (!gameState.answersRecord[existingIndex].isCorrect && isCorrect) {
+                    gameState.score += 10;
+                    gameState.correctCount += 1;
+                }
+                gameState.answersRecord[existingIndex] = { questionId: q.id, selected: selectedLabel, correct: q.correct, isCorrect: isCorrect };
+            } else {
+                if (isCorrect) {
+                    gameState.score += 10;
+                    gameState.correctCount += 1;
+                }
+                gameState.answersRecord.push({ questionId: q.id, selected: selectedLabel, correct: q.correct, isCorrect: isCorrect });
+            }
+
+            if (isCorrect) {
+                playSound('success');
+                selectedBtn.classList.remove('border-purple-200', 'bg-white');
+                selectedBtn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
+                feedbackBox.className = "mt-2 p-2.5 rounded-xl border-2 border-emerald-300 bg-emerald-50 transition-all";
+                feedbackHeader.innerHTML = "🎉 Hebat Sekali, Benar! 🎉";
+                feedbackHeader.className = "font-fredoka font-bold text-xs mb-1 text-emerald-800 flex items-center gap-1";
+                feedbackText.innerHTML = q.explanation;
+                speakText("Hebat sekali, jawaban kamu benar! " + q.explanation);
+            } else {
+                playSound('error');
+                selectedBtn.classList.remove('border-purple-200', 'bg-white');
+                selectedBtn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-900');
+                correctBtn.classList.remove('border-purple-200', 'bg-white');
+                correctBtn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
+                feedbackBox.className = "mt-2 p-2.5 rounded-xl border-2 border-rose-300 bg-rose-50 transition-all";
+                feedbackHeader.innerHTML = "💡 Kurang Tepat, Yuk Perhatikan Ini! 💡";
+                feedbackHeader.className = "font-fredoka font-bold text-xs mb-1 text-rose-800 flex items-center gap-1";
+                feedbackText.innerHTML = `Jawaban yang benar adalah <b>Opsi ${q.correct}</b>.<br><br>${q.explanation}`;
+                speakText("Belum tepat sayang. Jawaban yang benar adalah " + q.correct + ". " + q.explanation);
+            }
+            feedbackBox.classList.remove('hidden');
+        }
+
+        function prevQuestion() {
+            if (gameState.currentQuestionIndex > 0) {
+                gameState.currentQuestionIndex--;
+                renderQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            gameState.currentQuestionIndex++;
+            if (gameState.currentQuestionIndex < quizData.length) { 
+                renderQuestion(); 
+            } else { 
+                finishQuiz(); 
+            }
+        }
+
+        function finishQuiz() {
+            playSound('success');
+            renderResultScreen();
+            sendDataToGoogleSheets();
+        }
+
+        function renderResultScreen() {
+            const totalQ = quizData.length;
+            const percentage = (gameState.correctCount / totalQ) * 100;
+            let praise = "Luar Biasa Hebat!";
+            let badge = "🏆 Bintang Pelajar Teladan";
+            if (percentage < 60) { praise = "Tetap Semangat Belajar Ya!"; badge = "🌟 Bintang Harapan Pemula"; }
+
+            const html = `
+                <div class="text-center py-2">
+                    <div class="inline-block bg-yellow-100 p-2.5 rounded-full mb-2 shadow-inner bounce-slow">
+                        <span class="text-3xl">👑</span>
+                    </div>
+                    <h2 class="font-fredoka text-lg font-bold text-purple-800 mb-1">Kuis Selesai, ${gameState.playerName}!</h2>
+                    <p class="text-[11px] text-gray-500 mb-2.5">Jenjang: ${gameState.playerClass}</p>
+                    <div class="bg-gradient-to-r from-pink-100 to-purple-100 p-3 rounded-xl mb-3 border-2 border-purple-200 shadow-sm max-w-xs mx-auto">
+                        <div class="text-[11px] text-purple-700 font-semibold mb-0.5">${badge}</div>
+                        <div class="font-fredoka text-2xl font-bold text-purple-900 mb-0.5">${gameState.score} <span class="text-xs font-normal">Poin</span></div>
+                        <div class="text-[11px] text-gray-600">Jawaban Benar: <b>${gameState.correctCount}</b> dari <b>${totalQ}</b> soal</div>
+                    </div>
+                    <p class="text-[11px] text-gray-600 mb-4 max-w-xs mx-auto">${praise} Nilai dan rekap jawaban kamu telah otomatis tersimpan ke Dasbor Guru Google Sheets secara online!</p>
+                    <div class="flex flex-col sm:flex-row gap-2 justify-center">
+                        <button onclick="restartQuiz()" class="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-fredoka py-2 px-4 rounded-xl shadow-md transition text-xs cursor-pointer">
+                            🔄 Mainkan Lagi
+                        </button>
+                        <button onclick="openTeacherDashboard()" class="bg-yellow-300 hover:bg-yellow-400 text-purple-900 font-fredoka py-2 px-4 rounded-xl shadow-sm transition text-xs font-bold cursor-pointer">
+                            🔐 Buka Dasbor Guru
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('main-content').innerHTML = html;
+            speakText(`Yey, kuis selesai! Nilai kamu adalah ${gameState.score}. Hebat sekali!`);
+        }
+
+        function restartQuiz() { renderWelcomeScreen(); }
+
+        function sendDataToGoogleSheets() {
+            if (!scriptUrl) return;
+            const payload = { 
+                timestamp: new Date().toLocaleString('id-ID'), 
+                playerName: gameState.playerName, 
+                playerClass: gameState.playerClass, 
+                score: gameState.score, 
+                correctCount: `${gameState.correctCount} / ${quizData.length}`, 
+                totalQuestions: quizData.length 
+            };
+            fetch(scriptUrl, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+            .then(() => { console.log("Data berhasil dikirim."); })
+            .catch(err => { console.error("Gagal mengirim:", err); });
+        }
+
+        function openTeacherDashboard() {
+            document.getElementById('teacher-modal').classList.remove('hidden');
+            document.getElementById('teacher-modal').classList.add('flex');
+            fetchLeaderboardData();
+        }
+
+        function closeTeacherDashboard() {
+            document.getElementById('teacher-modal').classList.remove('flex');
+            document.getElementById('teacher-modal').classList.add('hidden');
+        }
+
+        async function fetchLeaderboardData() {
+            const tbody = document.getElementById('leaderboard-tbody');
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center p-5 text-purple-600 animate-pulse font-medium">Menarik data rekap nilai terbaru dari Google Sheets...</td></tr>`;
+            try {
+                const response = await fetch(scriptUrl);
+                let data = await response.json();
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center p-5 text-gray-400">Belum ada data murid yang masuk.</td></tr>`;
+                    return;
+                }
+                
+                // Balik urutan data menggunakan reverse() agar data terbaru di baris atas sheets tampil paling atas di tabel
+                data.reverse();
+
+                let rowsHtml = '';
+                data.forEach(row => {
+                    rowsHtml += `
+                        <tr class="hover:bg-purple-50 transition">
+                            <td class="p-2 text-gray-500 text-[11px]">${row.timestamp || '-'}</td>
+                            <td class="p-2 font-semibold text-purple-900">${row.playerName || '-'}</td>
+                            <td class="p-2"><span class="bg-purple-100 text-purple-700 text-[10px] px-2 py-0.5 rounded-full font-bold">${row.playerClass || '-'}</span></td>
+                            <td class="p-2 text-center font-bold text-emerald-600">${row.score || 0}</td>
+                            <td class="p-2 text-center text-gray-600">${row.correctCount || '0 / 10'}</td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = rowsHtml;
+            } catch (err) {
+                console.error("Gagal memuat:", err);
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center p-5 text-gray-500">Data tersimpan di Google Sheets Anda. Pastikan Deploy Apps Script diset ke Anyone.</td></tr>`;
+            }
+        }
+
+        function exportToExcel() {
+            try {
+                const table = document.querySelector("#leaderboard-container table");
+                if (!table) return;
+                const wb = XLSX.utils.table_to_book(table, {sheet: "Rekap Nilai PAUD"});
+                XLSX.writeFile(wb, "Rekap_Nilai_Kuis_PAUD.xlsx");
+            } catch (e) {
+                alert("Gagal export Excel. Pastikan library XLSX aktif.");
+            }
+        }
+
+        function exportToPDF() {
+            try {
+                const element = document.getElementById('leaderboard-container');
+                const opt = { margin: 10, filename: 'Rekap_Nilai_Kuis_PAUD.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+                html2pdf().from(element).set(opt).save();
+            } catch (e) {
+                alert("Gagal export PDF. Pastikan library html2pdf aktif atau coba cetak halaman (Ctrl+P).");
+            }
+        }
+
+        function exportToWord() {
+            try {
+                const tableData = document.getElementById('leaderboard-container').innerHTML;
+                const docHeader = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Rekap Nilai</title></head><body><h2>Rekap Nilai Kuis Ceria PAUD</h2>";
+                const docFooter = "</body></html>";
+                
+                const blob = new Blob(['\ufeff', docHeader + tableData + docFooter], { type: 'application/msword' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'Rekap_Nilai_Kuis.doc';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            } catch (e) {
+                alert("Gagal export Word.");
+            }
+        }
+    </script>
+</body>
+</html>
